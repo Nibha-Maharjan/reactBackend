@@ -19,8 +19,26 @@ const test = async (email, password) => {
 
 test('test1@gmail.com', 'pokemon1');
 
-app.get('/test', (req, res) => {
-  res.send('HelloWorld');
+//Getting Patient.route
+const PatientRoute = require('./Routes/patient.route');
+app.use('/patient', PatientRoute);
+
+// //404 Error
+// app.use((req, res, next) => {
+//   const err = new Error('Not found');
+//   err.status = 404;
+//   next(err);
+// });
+
+//Error handler
+app.use((err, req, res, next) => {
+  res.status(err.status || 500);
+  res.send({
+    error: {
+      status: err.status || 500,
+      message: err.message,
+    },
+  });
 });
 
 app.get('/', (req, res) => {
