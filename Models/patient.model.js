@@ -1,6 +1,18 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
+const VitalSignsSchema = new Schema({
+  dateTime: {
+    type: Date,
+    required: true,
+  },
+  vitalSigns: {
+    bloodPressure: String,
+    respiratoryRate: Number,
+    bloodOxygenLevel: Number,
+    heartBeatRate: Number,
+  },
+});
 const PatientSchema = new Schema({
   name: {
     type: String,
@@ -30,6 +42,7 @@ const PatientSchema = new Schema({
     type: String,
     required: true,
   },
+  records: [VitalSignsSchema],
 });
 
 const Patient = mongoose.model('patient', PatientSchema);
