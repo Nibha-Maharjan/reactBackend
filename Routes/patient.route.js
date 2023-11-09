@@ -81,8 +81,20 @@ router.get('/:id', async (req, res, next) => {
   }
 });
 
-router.patch('/:id', (req, res, next) => {
-  res.send('patch Created');
+router.put('/:id', async (req, res, next) => {
+  const id = req.params.id;
+  try {
+    const updatedPatient = await Patient.findByIdAndUpdate(id, req.body, {
+      new: true,
+    });
+    if (!updatedPatient) {
+      return res.status(404).send('Patient not found');
+    }
+    res.send(updatedPatient);
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).send('Internal Server Error');
+  }
 });
 
 router.delete('/:id', async (req, res, next) => {
@@ -123,6 +135,36 @@ router.post('/:id/records', async (req, res, next) => {
   } catch (error) {
     console.log(error.message);
     res.status(400).send('Bad Request');
+  }
+});
+
+router.patch('/:id/records/:recordId', async (req, res, next) => {
+  const { id, recordId } = req.params;
+  const updatedRecord = req.body;
+
+  try {
+    const patient = await Patient.findById(id);
+    if (!patient) {
+      return res.status(404).send('Patient not found');
+    }
+
+    const recordIndex = patient.records.findIndex(
+      (record) => record._id == recordId
+    );
+    if (recordIndex === -1) {
+      return res.status(404).send('Record not found');
+    }
+
+    patient.records[recordIndex] = {
+      ...patient.records[recordIndex],
+      ...updatedRecord,
+    };
+
+    await patient.save();
+    res.send(patient.records[recordIndex]);
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).send('Internal Server Error');
   }
 });
 
