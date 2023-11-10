@@ -26,8 +26,7 @@ router.get('/critical-patients', async (req, res, next) => {
           $or: [
             {
               'records.vitalSigns.bloodPressure': {
-                $lt: '50/90',
-                $gt: '60/150',
+                $lt: '50/100', // Adjusted the upper limit for systolic pressure
               },
             },
             {
