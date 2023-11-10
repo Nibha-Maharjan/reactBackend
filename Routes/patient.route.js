@@ -6,33 +6,52 @@ const Patient = require('../Models/patient.model');
 
 router.get('/critical-patients', async (req, res, next) => {
   try {
-    const criticalPatients = await Patient.find({
-      $or: [
-        {
-          'records.vitalSigns.bloodPressure': {
-            $lt: '50/90',
-            $gt: '60/150',
+    const criticalPatients = await Patient.aggregate([
+      {
+        $project: {
+          name: 1,
+          age: 1,
+          address: 1,
+          phone: 1,
+          email: 1,
+          description: 1,
+          date: 1,
+          records: {
+            $slice: ['$records', -1], // will show only the newest entry in record array
           },
         },
-        {
-          'records.vitalSigns.respiratoryRate': {
-            $lt: 12,
-            $gt: 25,
-          },
+      },
+      {
+        $match: {
+          $or: [
+            {
+              'records.vitalSigns.bloodPressure': {
+                $lt: '50/90',
+                $gt: '60/150',
+              },
+            },
+            {
+              'records.vitalSigns.respiratoryRate': {
+                $lt: 12,
+                $gt: 25,
+              },
+            },
+            {
+              'records.vitalSigns.bloodOxygenLevel': {
+                $lt: 90,
+              },
+            },
+            {
+              'records.vitalSigns.heartBeatRate': {
+                $lt: 60,
+                $gt: 100,
+              },
+            },
+          ],
         },
-        {
-          'records.vitalSigns.bloodOxygenLevel': {
-            $lt: 90,
-          },
-        },
-        {
-          'records.vitalSigns.heartBeatRate': {
-            $lt: 60,
-            $gt: 100,
-          },
-        },
-      ],
-    });
+      },
+    ]);
+
     res.send(criticalPatients);
   } catch (error) {
     console.log(error.message);
@@ -78,6 +97,20 @@ router.get('/:id', async (req, res, next) => {
     res.send(patient);
   } catch (error) {
     console.log(error.message);
+  }
+});
+
+router.get('/name/:name', async (req, res, next) => {
+  const name = req.params.name;
+  try {
+    const patients = await Patient.find({ name: new RegExp(name, 'i') });
+    if (!patients || patients.length === 0) {
+      return res.status(404).send('No patients found with the specified name');
+    }
+    res.send(patients);
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).send('Internal Server Error');
   }
 });
 
